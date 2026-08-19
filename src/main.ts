@@ -44,6 +44,7 @@ import Textarea from 'primevue/textarea';
 import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
 import FileUpload from 'primevue/fileupload';
+import Password from 'primevue/password';
 
 //theme
 import 'primevue/resources/themes/bootstrap4-dark-blue/theme.css';
@@ -118,6 +119,7 @@ app.component('Textarea', Textarea);
 app.component('Toast', Toast);
 app.use(ToastService);
 app.component('FileUpload', FileUpload);
+app.component('Password', Password);
 
 app.component('SpinWheel', SpinWheel);
 app.component('ItemInputGroup', ItemInputGroup);

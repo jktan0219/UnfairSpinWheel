@@ -16,7 +16,11 @@
         escape: true
       }"
       tabindex="0"
-    ></div>
+    >
+      <div class="icon-inner">
+        <span class="spin-text">SPIN</span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -279,23 +283,42 @@ onUnmounted(() => {
   height: $icon-size;
   border-radius: 50%;
 
-  background-image: url(/img/icon.png);
-  background-image: -webkit-image-set(
-    url(/img/icon.avif) type('image/avif'),
-    url(/img/icon.webp) type('image/webp'),
-    url(/img/icon.png) type('image/png')
-  );
-  background-image: image-set(
-    url(/img/icon.avif) type('image/avif'),
-    url(/img/icon.webp) type('image/webp'),
-    url(/img/icon.png) type('image/png')
-  );
+  /* Premium center button styling with no unfair image */
+  background: radial-gradient(circle at 35% 30%, #ffd700 0%, #d4af37 40%, #855800 100%);
+  border: 4px solid #ffffff;
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.7), 0 8px 16px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.8), inset 0 -4px 6px rgba(0, 0, 0, 0.5);
 
-  background-size: contain;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   position: absolute;
   top: calc(calc(50%) - calc($icon-size / 2));
   left: calc(calc(50%) - calc($icon-size / 2));
+  user-select: none;
+  z-index: 5;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease, filter 0.15s ease;
+
+  .icon-inner {
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #e11d48 0%, #be123c 60%, #881337 100%);
+    border: 2px solid #ffedd5;
+    box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.5), 0 2px 6px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .spin-text {
+    font-family: 'Rock Salt', 'Impact', sans-serif;
+    color: #ffffff;
+    font-size: clamp(0.9rem, 3.2vh, 1.8rem);
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 0 0 8px rgba(255, 255, 255, 0.6);
+  }
 
   @media (orientation: landscape) {
     $icon-size-ls: 11vh;
@@ -303,10 +326,21 @@ onUnmounted(() => {
     height: $icon-size-ls !important;
     top: calc(50% - ($icon-size-ls / 2)) !important;
     left: calc(50% - ($icon-size-ls / 2)) !important;
+
+    .spin-text {
+      font-size: clamp(0.75rem, 2.5vh, 1.4rem);
+    }
   }
 
   &:hover {
-    filter: brightness(1.1);
+    transform: scale(1.08);
+    filter: brightness(1.15);
+    box-shadow: 0 0 35px rgba(255, 215, 0, 0.9), 0 10px 20px rgba(0, 0, 0, 0.7);
+  }
+
+  &:active {
+    transform: scale(0.94);
+    filter: brightness(0.9);
   }
 }
 </style>

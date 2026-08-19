@@ -32,12 +32,49 @@
     icon="pi pi-angle-double-left"
     aria-label="Open sidebar"
     class="overflow-visible sidebar-button"
-    @click="sidebarService?.openSidebar"
+    @click="openSettingsWithPassword"
     :pt="{
       icon: { style: { fontSize: 'xx-large' } }
     }"
   />
   <DynamicDialog />
+  <Dialog
+    v-model:visible="showPasswordDialog"
+    modal
+    dismissableMask
+    header="🔒 Admin Settings"
+    :style="{ width: '380px', maxWidth: '90vw' }"
+  >
+    <div class="flex flex-column gap-3 p-2">
+      <p class="m-0 text-color-secondary text-sm">
+        Please enter the admin password to access settings:
+      </p>
+      <Password
+        v-model="passwordInput"
+        :feedback="false"
+        toggleMask
+        placeholder="Enter password"
+        class="w-full"
+        :inputStyle="{ width: '100%' }"
+        autofocus
+        @keyup.enter="checkPassword"
+      />
+      <div class="flex justify-content-end gap-2 mt-2">
+        <Button
+          label="Cancel"
+          severity="secondary"
+          text
+          @click="showPasswordDialog = false"
+        />
+        <Button
+          label="Unlock"
+          icon="pi pi-lock-open"
+          severity="primary"
+          @click="checkPassword"
+        />
+      </div>
+    </div>
+  </Dialog>
   <Dialog v-model:visible="showInputGroupDialog" modal dismissableMask header="Header">
     <template #container>
       <form class="surface-card border-round shadow-2 p-4 max-w-screen" @submit.prevent>
@@ -78,6 +115,7 @@
 
 <script setup lang="ts">
 import { inject, onMounted, ref } from 'vue';
+import { useToast } from 'primevue/usetoast';
 import type { SidebarService } from '@/services/SidebarService';
 import { ItemService, GroupLabels } from '@/services/ItemService';
 import { StringHelper } from '@/helpers/StringHelper';
@@ -89,8 +127,33 @@ declare global {
   }
 }
 
+const toast = useToast();
 const sidebarService = inject<SidebarService>('SidebarService');
 const itemService = inject<ItemService>('ItemService');
+
+// ─── Password Protection for Settings Button ───────────────────────────────
+const showPasswordDialog = ref(false);
+const passwordInput = ref('');
+
+const openSettingsWithPassword = () => {
+  passwordInput.value = '';
+  showPasswordDialog.value = true;
+};
+
+const checkPassword = () => {
+  if (passwordInput.value === 'gssb*9898#') {
+    showPasswordDialog.value = false;
+    sidebarService?.openSidebar();
+  } else {
+    toast.add({
+      severity: 'error',
+      summary: 'Access Denied',
+      detail: 'Incorrect password. Access denied.',
+      life: 3500
+    });
+  }
+};
+// ───────────────────────────────────────────────────────────────────────────
 
 let inputItems: { label: string; weight: number }[] = [];
 const showInputGroupDialog = ref(false);

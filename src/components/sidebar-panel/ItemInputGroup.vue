@@ -20,7 +20,9 @@
       @update:modelValue="updateWeight($event)"
       @change="updateWeight($event)"
       showButtons
-      :step="1"
+      :step="0.5"
+      :minFractionDigits="0"
+      :maxFractionDigits="2"
       decrementButtonClass="p-button-secondary"
       incrementButtonClass="p-button-secondary"
       mode="decimal"
@@ -29,10 +31,10 @@
       }"
       :pt="{
         input: {
-          style: { minWidth: '4em', maxWidth: '4em', borderRadius: '0', textAlign: 'center' }
+          style: { minWidth: '4.5em', maxWidth: '4.5em', borderRadius: '0', textAlign: 'center' }
         }
       }"
-      :min="1"
+      :min="0.1"
     >
       <template #incrementbuttonicon><i class="pi pi-plus"></i></template>
       <template #decrementbuttonicon><i class="pi pi-minus"></i></template>

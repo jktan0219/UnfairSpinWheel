@@ -436,7 +436,7 @@ const changeBulkEditMode = async () => {
     try {
       items = StringHelper.csvParse(textArea.value, true).map(({ label, weight }) => ({
         label: label,
-        weight: +weight < 1 ? 1 : +weight,
+        weight: isNaN(+weight) || +weight <= 0 ? 1 : +weight,
         group: GroupLabel.value!,
         order: -1
       }));
@@ -497,7 +497,7 @@ const onFileSelected = async (event: Event) => {
     const groupName = file.name.replace(/\.[^.]+$/, '') || 'Custom Items';
     const newItems: IItem[] = items.map(({ label, weight }, i) => ({
       label,
-      weight: Number(weight) < 1 ? 1 : Number(weight),
+      weight: isNaN(Number(weight)) || Number(weight) <= 0 ? 1 : Number(weight),
       group: groupName,
       order: i
     }));
@@ -543,7 +543,7 @@ const loadFromFile = async () => {
     const groupName = result.groupName;
     const newItems: IItem[] = result.items.map(({ label, weight }, i) => ({
       label,
-      weight: weight < 1 ? 1 : weight,
+      weight: isNaN(Number(weight)) || Number(weight) <= 0 ? 1 : Number(weight),
       group: groupName,
       order: i
     }));

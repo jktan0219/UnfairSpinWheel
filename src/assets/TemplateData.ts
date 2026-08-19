@@ -2,13 +2,13 @@ export const templateItems = [
   {
     group: 'Event Mini Game',
     label: 'Ho',
-    weight: 2,
+    weight: 1.5,
     order: 0
   },
   {
     group: 'Event Mini Game',
     label: 'Ding',
-    weight: 2,
+    weight: 3,
     order: 1
   },
   {
@@ -26,7 +26,7 @@ export const templateItems = [
   {
     group: 'Event Mini Game',
     label: 'Nic',
-    weight: 1,
+    weight: 0.5,
     order: 4
   }
 ];
