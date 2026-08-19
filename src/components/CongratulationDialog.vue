@@ -46,6 +46,9 @@ onMounted(() => {
 .label {
   color: white;
   z-index: 2;
+  font-size: clamp(2.5rem, 8vmin, 5.5rem);
+  font-weight: bold;
+  text-shadow: 0 4px 16px rgba(0, 0, 0, 0.95), 0 0 25px rgba(255, 215, 0, 0.7);
 }
 
 .blob {

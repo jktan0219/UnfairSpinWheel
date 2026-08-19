@@ -158,6 +158,8 @@ const openCongratulationDialog = ($event: {
   });
 };
 
+let resizeObserver: ResizeObserver | undefined;
+
 const handleResize = () => {
   if (wheel) {
     wheel.resize();
@@ -198,9 +200,19 @@ onMounted(() => {
     });
   };
 
+  // Observe container size changes directly (perfect for rotation & window resize)
+  if (typeof ResizeObserver !== 'undefined' && container.value) {
+    resizeObserver = new ResizeObserver(() => {
+      handleResize();
+    });
+    resizeObserver.observe(container.value);
+  }
+
   window.addEventListener('resize', handleResize);
   window.addEventListener('orientationchange', () => {
-    setTimeout(handleResize, 200);
+    setTimeout(handleResize, 100);
+    setTimeout(handleResize, 300);
+    setTimeout(handleResize, 600);
   });
 
   setTimeout(() => {
@@ -212,6 +224,9 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
   window.removeEventListener('resize', handleResize);
 });
 </script>
@@ -220,63 +235,40 @@ onUnmounted(() => {
 @import 'primeflex/core/_variables.scss';
 
 .spin-container {
-  aspect-ratio: 1/1;
-  width: 200vw;
-  height: 90vh;
-
-  margin-top: -3.5rem;
-  margin-bottom: -10vh;
+  aspect-ratio: 1 / 1;
+  width: min(92vw, 65vh);
+  height: min(92vw, 65vh);
+  max-width: 580px;
+  max-height: 580px;
+  margin: 0.5rem auto 1rem auto;
   position: relative;
-
-  @media (min-width: map-get($breakpoints, 'sm')) {
-    height: 100vh;
-  }
-
-  @media (min-width: map-get($breakpoints, 'md')) {
-    height: 110vh;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   @media (orientation: landscape) {
-    width: 75vh !important;
-    height: 75vh !important;
-    max-width: 90vw;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
+    width: min(72vh, 72vw) !important;
+    height: min(72vh, 72vw) !important;
+    max-width: none;
+    max-height: none;
+    margin: 0 auto !important;
   }
 }
 
 .image {
+  width: 100%;
+  height: 100%;
   object-position: center;
   object-fit: contain;
-
-  aspect-ratio: 1/1;
-  width: 200vw;
-  height: 90vh;
-
+  aspect-ratio: 1 / 1;
   position: absolute;
-  top: calc(calc(50%) - calc(90vh / 2));
-  left: calc(calc(50%) - calc(200vw / 2));
-
-  @media (min-width: map-get($breakpoints, 'sm')) {
-    height: 100vh;
-    top: calc(calc(50%) - calc(100vh / 2));
-  }
-
-  @media (min-width: map-get($breakpoints, 'md')) {
-    height: 110vh;
-    top: calc(calc(50%) - calc(110vh / 2));
-  }
-
-  @media (orientation: landscape) {
-    width: 75vh !important;
-    height: 75vh !important;
-    top: 0 !important;
-    left: 0 !important;
-  }
+  top: 0;
+  left: 0;
+  pointer-events: none;
 }
 
 .icon {
-  $icon-size: 13vh;
+  $icon-size: 20%;
   cursor: pointer;
 
   width: $icon-size;
@@ -285,16 +277,16 @@ onUnmounted(() => {
 
   /* Premium center button styling with no unfair image */
   background: radial-gradient(circle at 35% 30%, #ffd700 0%, #d4af37 40%, #855800 100%);
-  border: 4px solid #ffffff;
-  box-shadow: 0 0 25px rgba(255, 215, 0, 0.7), 0 8px 16px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.8), inset 0 -4px 6px rgba(0, 0, 0, 0.5);
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.7), 0 6px 12px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.8), inset 0 -3px 5px rgba(0, 0, 0, 0.5);
 
   display: flex;
   align-items: center;
   justify-content: center;
 
   position: absolute;
-  top: calc(calc(50%) - calc($icon-size / 2));
-  left: calc(calc(50%) - calc($icon-size / 2));
+  top: calc(50% - ($icon-size / 2));
+  left: calc(50% - ($icon-size / 2));
   user-select: none;
   z-index: 5;
   transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease, filter 0.15s ease;
@@ -305,7 +297,7 @@ onUnmounted(() => {
     border-radius: 50%;
     background: radial-gradient(circle at 40% 35%, #e11d48 0%, #be123c 60%, #881337 100%);
     border: 2px solid #ffedd5;
-    box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.5), 0 2px 6px rgba(0, 0, 0, 0.5);
+    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.5), 0 2px 4px rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -314,28 +306,16 @@ onUnmounted(() => {
   .spin-text {
     font-family: 'Rock Salt', 'Impact', sans-serif;
     color: #ffffff;
-    font-size: clamp(0.9rem, 3.2vh, 1.8rem);
+    font-size: clamp(0.75rem, 2.5vmin, 1.6rem);
     font-weight: 900;
     letter-spacing: 1px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 0 0 8px rgba(255, 255, 255, 0.6);
-  }
-
-  @media (orientation: landscape) {
-    $icon-size-ls: 11vh;
-    width: $icon-size-ls !important;
-    height: $icon-size-ls !important;
-    top: calc(50% - ($icon-size-ls / 2)) !important;
-    left: calc(50% - ($icon-size-ls / 2)) !important;
-
-    .spin-text {
-      font-size: clamp(0.75rem, 2.5vh, 1.4rem);
-    }
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 0 0 6px rgba(255, 255, 255, 0.6);
   }
 
   &:hover {
     transform: scale(1.08);
     filter: brightness(1.15);
-    box-shadow: 0 0 35px rgba(255, 215, 0, 0.9), 0 10px 20px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.9), 0 8px 16px rgba(0, 0, 0, 0.7);
   }
 
   &:active {
