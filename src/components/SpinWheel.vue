@@ -1,20 +1,4 @@
 <template>
-  <Dropdown
-    id="group-dropdown"
-    :model-value="GroupLabel"
-    :options="GroupLabels"
-    class="mt-4 z-1"
-    @update:model-value="itemService?.changeGroupLabel"
-    :pt="{
-      input: {
-        class: 'text-xl sm:text-4xl md:text-6xl'
-      },
-      item: {
-        class: 'text-xl sm:text-xl md:text-3xl'
-      }
-    }"
-  />
-  <ShareLink class="w-full flex justify-content-center z-1 mt-3" />
   <div ref="container" class="flex spin-container">
     <picture>
       <source srcset="/img/image.avif" type="image/avif" />
