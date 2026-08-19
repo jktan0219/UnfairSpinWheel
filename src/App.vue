@@ -29,12 +29,12 @@
     severity="info"
     text
     rounded
-    icon="pi pi-angle-double-left"
-    aria-label="Open sidebar"
+    icon="pi pi-cog"
+    aria-label="Settings"
     class="overflow-visible sidebar-button"
     @click="openSettingsWithPassword"
     :pt="{
-      icon: { style: { fontSize: 'xx-large' } }
+      icon: { style: { fontSize: 'x-large' } }
     }"
   />
   <DynamicDialog />
@@ -324,23 +324,25 @@ onMounted(async () => {
 
 .sidebar-button {
   position: fixed;
-  top: calc(50% - 25px);
+  top: 1rem;
   right: 1rem;
-  transform: translateY(-50%);
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   z-index: 999;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 
-  animation: shockwaveJump 2s ease-out infinite;
+  animation: shockwaveJump 3s ease-out infinite;
 
   &:after {
     @include afterBg;
-    animation: shockwave 2s 0.65s ease-out infinite;
+    animation: shockwave 3s 0.65s ease-out infinite;
   }
 
   &:before {
     @include afterBg;
-    animation: shockwave 2s 0.5s ease-out infinite;
+    animation: shockwave 3s 0.5s ease-out infinite;
   }
 }
 
