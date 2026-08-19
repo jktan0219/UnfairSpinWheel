@@ -8,21 +8,19 @@
       </div>
     </template>
   </ConfirmPopup>
-  <ScrollPanel class="h-screen">
-    <div class="max-w-screen overflow-x-hidden overflow-y-hidden">
-      <div class="grid header text-center">
-        <h1 class="col-12 mb-0 text-4xl sm:text-5xl md:text-6xl">
-          <span class="white-space-nowrap">Spin Wheel</span>
-        </h1>
-        <p class="col-12 my-0 py-0 text-base sm:text-lg md:text-2xl">
-          <span class="white-space-nowrap">May fortune smile on you!</span>
-        </p>
-      </div>
-      <div class="flex flex-wrap justify-content-center mb-4">
-        <SpinWheel></SpinWheel>
-      </div>
-    </div>
-  </ScrollPanel>
+  <main class="app-shell">
+    <header class="header text-center">
+      <h1 class="mb-0 text-4xl sm:text-5xl md:text-6xl">
+        <span class="white-space-nowrap">Spin Wheel</span>
+      </h1>
+      <p class="my-0 py-0 text-base sm:text-lg md:text-2xl">
+        <span class="white-space-nowrap">May fortune smile on you!</span>
+      </p>
+    </header>
+    <section class="wheel-stage" aria-label="Spin wheel">
+      <SpinWheel></SpinWheel>
+    </section>
+  </main>
 
   <SidebarPanel></SidebarPanel>
   <Button
@@ -287,6 +285,8 @@ onMounted(async () => {
   font-family: 'Rock Salt';
   -webkit-text-shadow: 9px 7px 20px #000000;
   text-shadow: 9px 7px 20px #000000;
+  flex: 0 0 auto;
+  padding-inline: 4rem;
 
   h1 {
     font-size: xxx-large;
@@ -306,6 +306,51 @@ onMounted(async () => {
       margin: 0 !important;
     }
   }
+
+  @media (max-width: 480px) {
+    padding-inline: 3.5rem;
+  }
+}
+
+.app-shell {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: max(0.5rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right))
+    max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
+  overflow: hidden;
+}
+
+.wheel-stage {
+  display: grid;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  place-items: start center;
+}
+
+@media (orientation: landscape) {
+  .app-shell {
+    flex-direction: row;
+    justify-content: center;
+    gap: clamp(1rem, 4vw, 4rem);
+  }
+
+  .header {
+    flex: 0 1 20rem;
+    min-width: 0;
+    padding-inline: 0;
+  }
+
+  .wheel-stage {
+    flex: 0 1 auto;
+    width: auto;
+    place-items: center;
+  }
 }
 
 .confirm-button {
@@ -324,8 +369,8 @@ onMounted(async () => {
 
 .sidebar-button {
   position: fixed;
-  top: 1rem;
-  right: 1rem;
+  top: max(0.75rem, env(safe-area-inset-top));
+  right: max(0.75rem, env(safe-area-inset-right));
   width: 48px;
   height: 48px;
   z-index: 999;
@@ -343,6 +388,14 @@ onMounted(async () => {
   &:before {
     @include afterBg;
     animation: shockwave 3s 0.5s ease-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-button,
+  .sidebar-button::before,
+  .sidebar-button::after {
+    animation: none;
   }
 }
 

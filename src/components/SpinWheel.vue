@@ -158,12 +158,15 @@ const openCongratulationDialog = ($event: {
   });
 };
 
-let resizeObserver: ResizeObserver | undefined;
-
 const handleResize = () => {
-  if (wheel) {
-    wheel.resize();
-  }
+  window.requestAnimationFrame(() => wheel?.resize());
+};
+
+const handleOrientationChange = () => {
+  // Mobile browsers settle the visual viewport after the orientation event.
+  handleResize();
+  window.setTimeout(handleResize, 150);
+  window.setTimeout(handleResize, 400);
 };
 
 onMounted(() => {
@@ -200,20 +203,11 @@ onMounted(() => {
     });
   };
 
-  // Observe container size changes directly (perfect for rotation & window resize)
-  if (typeof ResizeObserver !== 'undefined' && container.value) {
-    resizeObserver = new ResizeObserver(() => {
-      handleResize();
-    });
-    resizeObserver.observe(container.value);
-  }
-
+  // spin-wheel observes its own container. These listeners also cover mobile
+  // visual viewport changes while the browser chrome and orientation settle.
   window.addEventListener('resize', handleResize);
-  window.addEventListener('orientationchange', () => {
-    setTimeout(handleResize, 100);
-    setTimeout(handleResize, 300);
-    setTimeout(handleResize, 600);
-  });
+  window.visualViewport?.addEventListener('resize', handleResize);
+  window.addEventListener('orientationchange', handleOrientationChange);
 
   setTimeout(() => {
     if (wheel) {
@@ -224,10 +218,10 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  if (resizeObserver) {
-    resizeObserver.disconnect();
-  }
   window.removeEventListener('resize', handleResize);
+  window.visualViewport?.removeEventListener('resize', handleResize);
+  window.removeEventListener('orientationchange', handleOrientationChange);
+  wheel?.remove();
 });
 </script>
 
@@ -235,23 +229,28 @@ onUnmounted(() => {
 @import 'primeflex/core/_variables.scss';
 
 .spin-container {
+  --wheel-size: min(92vw, 42rem);
+  --wheel-size: min(92vw, calc(100dvh - 9.5rem), 42rem);
+
   aspect-ratio: 1 / 1;
-  width: min(92vw, 65vh);
-  height: min(92vw, 65vh);
-  max-width: 580px;
-  max-height: 580px;
-  margin: 0.5rem auto 1rem auto;
+  width: var(--wheel-size);
+  height: var(--wheel-size);
+  margin: clamp(0.25rem, 2vh, 1rem) auto 0;
   position: relative;
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
+  contain: layout paint;
 
   @media (orientation: landscape) {
-    width: min(72vh, 72vw) !important;
-    height: min(72vh, 72vw) !important;
-    max-width: none;
-    max-height: none;
-    margin: 0 auto !important;
+    --wheel-size: min(calc(100dvh - 1.5rem), 65vw, 42rem);
+
+    margin: 0;
+  }
+
+  @media (min-width: 768px) and (orientation: portrait) {
+    --wheel-size: min(78vw, calc(100dvh - 12rem), 42rem);
   }
 }
 
