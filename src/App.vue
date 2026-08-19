@@ -231,6 +231,18 @@ onMounted(async () => {
   p {
     font-size: large;
   }
+
+  @media (orientation: landscape) and (max-height: 600px) {
+    h1 {
+      font-size: 1.5rem !important;
+      margin-top: 0.25rem !important;
+      margin-bottom: 0 !important;
+    }
+    p {
+      font-size: 0.85rem !important;
+      margin: 0 !important;
+    }
+  }
 }
 
 .confirm-button {

@@ -21,18 +21,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, inject, watch } from 'vue';
+import { ref, onMounted, onUnmounted, inject, watch } from 'vue';
 import random from 'random';
 import { Wheel, type WheelProps } from 'spin-wheel';
 import { useDialog } from 'primevue/usedialog';
 import { TickSound, LabelLength } from '@/services/SettingService';
-import { GroupLabel, GroupLabels, ItemService, Items } from '@/services/ItemService';
+import { ItemService, Items } from '@/services/ItemService';
 import CongratulationDialog from '@/components/CongratulationDialog.vue';
 
 const itemService = inject<ItemService>('ItemService');
 
 const properties: WheelProps = {
-  // debug: import.meta.env.DEV,
   isInteractive: false,
   radius: 0.48,
   rotationResistance: 0,
@@ -42,7 +41,6 @@ const properties: WheelProps = {
   itemLabelAlign: 'left',
   itemLabelColors: ['#fff'],
   itemLabelBaselineOffset: -0.07,
-  // Should also change app.scss
   itemLabelFont:
     '"Suez One", "Mochiy Pop P One", "Jua", "Unbounded", "Mitr", "Noto Sans TC", "Noto Sans SC", "Noto Sans Lao", "Noto Color Emoji"',
   itemLabelFontSizeMax: 55,
@@ -69,10 +67,37 @@ const container = ref();
 
 let spinCount = 0;
 let wheel: Wheel | undefined = undefined;
+let isSpinning = false;
+
+// Force all visual slices to have weight = 1 so they are spread completely evenly
+const getVisualItems = (items?: any[]) => {
+  if (!items || items.length === 0) return [];
+  return items.map((item) => ({
+    ...item,
+    weight: 1 // visually 100% equal slices
+  }));
+};
+
+// Pick the winning item index based on actual item weights
+const getRandomWeightedIndex = (): number => {
+  const currentItems = Items.value || [];
+  if (currentItems.length === 0) return 0;
+
+  const totalWeight = currentItems.reduce((sum, item) => sum + (Number(item.weight) || 1), 0);
+  let randomNum = Math.random() * totalWeight;
+
+  for (let i = 0; i < currentItems.length; i++) {
+    const weight = Number(currentItems[i].weight) || 1;
+    if (randomNum < weight) {
+      return i;
+    }
+    randomNum -= weight;
+  }
+  return currentItems.length - 1;
+};
 
 const stopAndClearSound = () => {
   if (!wheel) return;
-
   wheel.onCurrentIndexChange = () => {};
   wheel.stop();
 };
@@ -89,30 +114,24 @@ const playSound = () => {
 };
 
 const spin = () => {
-  if (!wheel) return;
+  if (!wheel || isSpinning) return;
+
+  const currentItems = Items.value || [];
+  if (currentItems.length === 0) return;
+
+  isSpinning = true;
+
+  // Determine the secret weighted winner
+  const targetIndex = getRandomWeightedIndex();
+  const duration = random.int(4000, 5500);
+  const revolutions = random.int(5, 8);
 
   wheel.onCurrentIndexChange = () => {
-    if (!wheel) return;
-
     playSound();
-
-    // Change rotation resistance based on current speed.
-    // Provide a more entertaining performance.
-    switch (true) {
-      case wheel.rotationSpeed < 400:
-        wheel.rotationResistance = -100;
-        break;
-      case wheel.rotationSpeed < 100:
-        wheel.rotationResistance = -30;
-        break;
-      case wheel.rotationSpeed < 30:
-        wheel.rotationResistance = -10;
-        break;
-    }
   };
 
-  wheel.rotationResistance = -400;
-  wheel.spin(wheel.rotationSpeed + random.int(1000, 1600));
+  // Smoothly spin to the chosen weighted item
+  wheel.spinToItem(targetIndex, duration, false, revolutions, 1);
 };
 
 const dialog = useDialog();
@@ -135,22 +154,36 @@ const openCongratulationDialog = ($event: {
   });
 };
 
+const handleResize = () => {
+  if (wheel) {
+    wheel.resize();
+  }
+};
+
 onMounted(() => {
-  watch(Items, (newValue) => (wheel!.items = newValue || []));
+  watch(Items, (newValue) => {
+    if (wheel) {
+      wheel.items = getVisualItems(newValue);
+    }
+  });
+
   watch(LabelLength, (newValue) => {
-    wheel!.itemLabelRadiusMax = 1 - newValue;
+    if (wheel) {
+      wheel.itemLabelRadiusMax = 1 - newValue;
+    }
   });
 
   wheel = new Wheel(container.value, {
     ...properties,
-    items: Items.value,
+    items: getVisualItems(Items.value),
     itemLabelRadiusMax: 1 - LabelLength.value
   });
 
   wheel.spin(10);
 
   wheel.onRest = ($event) => {
-    stopAndClearSound;
+    isSpinning = false;
+    stopAndClearSound();
     openCongratulationDialog($event);
   };
 
@@ -161,10 +194,21 @@ onMounted(() => {
     });
   };
 
-  // Workaround for itemLabelRadiusMax not working on first load.
+  window.addEventListener('resize', handleResize);
+  window.addEventListener('orientationchange', () => {
+    setTimeout(handleResize, 200);
+  });
+
   setTimeout(() => {
-    wheel!.itemLabelRadiusMax = 1 - LabelLength.value;
-  }, 50);
+    if (wheel) {
+      wheel.itemLabelRadiusMax = 1 - LabelLength.value;
+      wheel.resize();
+    }
+  }, 100);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
 });
 </script>
 
@@ -186,6 +230,14 @@ onMounted(() => {
 
   @media (min-width: map-get($breakpoints, 'md')) {
     height: 110vh;
+  }
+
+  @media (orientation: landscape) {
+    width: 75vh !important;
+    height: 75vh !important;
+    max-width: 90vw;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
   }
 }
 
@@ -210,21 +262,12 @@ onMounted(() => {
     height: 110vh;
     top: calc(calc(50%) - calc(110vh / 2));
   }
-}
 
-.button-container {
-  margin-top: -5.5rem;
-
-  button {
-    z-index: 2;
-    position: relative;
-
-    $background-color: #0c0f1d;
-    background: $background-color;
-
-    &:hover {
-      filter: brightness(1.3);
-    }
+  @media (orientation: landscape) {
+    width: 75vh !important;
+    height: 75vh !important;
+    top: 0 !important;
+    left: 0 !important;
   }
 }
 
@@ -253,6 +296,14 @@ onMounted(() => {
   position: absolute;
   top: calc(calc(50%) - calc($icon-size / 2));
   left: calc(calc(50%) - calc($icon-size / 2));
+
+  @media (orientation: landscape) {
+    $icon-size-ls: 11vh;
+    width: $icon-size-ls !important;
+    height: $icon-size-ls !important;
+    top: calc(50% - ($icon-size-ls / 2)) !important;
+    left: calc(50% - ($icon-size-ls / 2)) !important;
+  }
 
   &:hover {
     filter: brightness(1.1);

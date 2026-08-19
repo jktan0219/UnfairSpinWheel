@@ -205,20 +205,45 @@
           </div>
           <Divider />
           <div class="col-12">
-            <label class="block mb-2">📂 Load Items from File</label>
-            <div class="flex flex-column gap-2">
-              <Button
-                class="w-full"
-                icon="pi pi-upload"
-                label="Load from spinwheel_items.txt"
-                severity="info"
-                :loading="fileImportLoading"
-                @click="loadFromFile"
-              />
+            <label class="block mb-2 font-bold">📂 Load Items from File</label>
+            <div class="flex flex-column gap-3">
+              <!-- Method 1: In-App File Picker -->
+              <div>
+                <input
+                  type="file"
+                  ref="fileInputRef"
+                  accept=".txt,.csv"
+                  style="display: none"
+                  @change="onFileSelected"
+                />
+                <Button
+                  class="w-full"
+                  icon="pi pi-folder-open"
+                  label="Select .txt File from Device"
+                  severity="success"
+                  @click="triggerFileInput"
+                />
+              </div>
+
+              <!-- Method 2: Load from Downloads folder -->
+              <div>
+                <Button
+                  class="w-full"
+                  icon="pi pi-download"
+                  label="Load from Downloads/spinwheel_items.txt"
+                  severity="info"
+                  outlined
+                  :loading="fileImportLoading"
+                  @click="loadFromFile"
+                />
+              </div>
+
               <small class="text-color-secondary">
-                Place <code>spinwheel_items.txt</code> in your device's
-                <strong>Downloads</strong> folder, then tap this button to load items.
-                <br />Format: one item per line — <code>Label,weight</code> or just <code>Label</code>
+                <strong>Option A:</strong> Tap <em>"Select .txt File"</em> to browse and pick any file from your phone.
+                <br />
+                <strong>Option B:</strong> Place <code>spinwheel_items.txt</code> in your device's <strong>Downloads</strong> folder and tap the button above.
+                <br />
+                <strong>Format:</strong> One item per line — <code>Label,weight</code> (e.g. <code>Ho,2</code>)
               </small>
             </div>
           </div>
@@ -438,8 +463,66 @@ const changeBulkEditMode = async () => {
 
 let badCSV: string | undefined = undefined;
 
-// ─── File Import (Android: Downloads/spinwheel_items.txt) ─────────────────
+// ─── File Import (In-app Picker & Downloads Folder) ──────────────────────
 const fileImportLoading = ref(false);
+const fileInputRef = ref<HTMLInputElement>();
+
+const triggerFileInput = () => {
+  fileInputRef.value?.click();
+};
+
+const onFileSelected = async (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    const stripped = text
+      .split('\n')
+      .filter((line) => !line.trim().startsWith('#'))
+      .join('\n');
+
+    const items = StringHelper.csvParse(stripped, true);
+    if (items.length === 0) {
+      toast.add({
+        severity: 'error',
+        summary: 'Empty File',
+        detail: 'The selected file contains no valid items.',
+        life: 5000
+      });
+      return;
+    }
+
+    const groupName = file.name.replace(/\.[^.]+$/, '') || 'Custom Items';
+    const newItems: IItem[] = items.map(({ label, weight }, i) => ({
+      label,
+      weight: Number(weight) < 1 ? 1 : Number(weight),
+      group: groupName,
+      order: i
+    }));
+
+    await itemService.cleanUpGroup(groupName);
+    await itemService.addItems(newItems);
+    await itemService.changeGroupLabel(groupName);
+
+    toast.add({
+      severity: 'success',
+      summary: 'Items Loaded',
+      detail: `Loaded ${newItems.length} items from "${file.name}"`,
+      life: 4000
+    });
+  } catch (err: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Parse Error',
+      detail: err.message,
+      life: 5000
+    });
+  } finally {
+    target.value = '';
+  }
+};
 
 const loadFromFile = async () => {
   fileImportLoading.value = true;
