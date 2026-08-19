@@ -1,0 +1,10 @@
+# spinwheel_items.txt
+# Place this file in your Android device's Downloads folder.
+# Format: Label,weight  (weight is optional -- defaults to 1 if omitted)
+# ---------------------------------------------------------------
+
+Ho,2
+Ding,2
+Jk,3
+Ai Shan,2
+Nic,1
